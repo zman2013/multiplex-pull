@@ -23,10 +23,16 @@ public interface IMultiplex {
     /**
      * create a local channel and trigger remote multiplex creating a remote channel.
      *
+     * @param resourceId source unique id in the whole system
      * @return the local channel which is linked with the remote channel
      */
     IChannel createChannel(String resourceId);
 
+    /**
+     * when the multiplex received a remote channel, will invoke this callback
+     * @param callback functional
+     * @return self
+     */
     IMultiplex onAccept(Consumer<IChannel> callback);
 
 
@@ -38,12 +44,13 @@ public interface IMultiplex {
      * When the multiplex's source buffer is full, the multiplex should store the channel reference.
      * And when it has more space to accept data, it should notify the failed channel to pushSource again.
      *
-     * @param channel
-     * @param data
+     * @param channel channel info
+     * @param channelDataType    channel data type
+     * @param data    data
      *
      * @return true for success, false for failure
      */
-    boolean pushSource(IChannel channel, int type, byte[] data);
+    boolean pushSource(IChannel channel, int channelDataType, byte[] data);
 
 
     /**
@@ -56,5 +63,8 @@ public interface IMultiplex {
      */
     void destroy();
 
+    /**
+     * @return the underlying duplex
+     */
     IDuplex<ChannelData> duplex();
 }

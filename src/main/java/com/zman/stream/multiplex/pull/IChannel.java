@@ -28,6 +28,9 @@ public interface IChannel {
      */
     void close();
 
+    /**
+     * @return the underlying duplex
+     */
     IDuplex<byte[]> duplex();
 
 
@@ -43,9 +46,7 @@ public interface IChannel {
         }
 
         @Override
-        public void close() {
-
-        }
+        public void close() {}
 
         @Override
         public IDuplex<byte[]> duplex() {

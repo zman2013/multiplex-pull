@@ -82,9 +82,9 @@ public class DefaultMultiplex implements IMultiplex{
      * @return true for success, false for failure
      */
     @Override
-    public boolean pushSource(IChannel channel, int type, byte[] data) {
+    public boolean pushSource(IChannel channel, int channelDataType, byte[] data) {
 
-        ChannelData channelData = new ChannelData(channel.id(), channel.resourceId(), type, data);
+        ChannelData channelData = new ChannelData(channel.id(), channel.resourceId(), channelDataType, data);
         duplex.push(channelData);
 
         return true;
