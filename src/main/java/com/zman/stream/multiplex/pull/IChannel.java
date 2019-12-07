@@ -17,7 +17,7 @@ public interface IChannel {
      *
      * Which resource this channel supports, for example: signalModel、bleModel、AccountModel, etc.
      *
-     * There is only two channels(local & remote) with the unique resourceId in one multiplex.
+     * There is only two channels(local and remote) with the unique resourceId in one multiplex.
      *
      * @return the unique resource id in all systems
      */

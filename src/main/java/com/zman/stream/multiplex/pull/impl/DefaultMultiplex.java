@@ -77,8 +77,8 @@ public class DefaultMultiplex implements IMultiplex{
      * When the multiplex's source buffer is full, the multiplex should store the channel reference.
      * And when it has more space to accept data, it should notify the failed channel to pushSource again.
      *
-     * @param channel
-     * @param data
+     * @param channel channel
+     * @param data    data
      * @return true for success, false for failure
      */
     @Override
