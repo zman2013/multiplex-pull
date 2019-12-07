@@ -4,7 +4,7 @@
 
     <groupId>com.zmannotes</groupId>
     <artifactId>multiplex-pull</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>multiplex pull</name>
     <description>A multiplex implementation that uses pull-stream .</description>
@@ -15,7 +15,7 @@
         <connection>scm:git:git@github.com:zman2013/multiplex-pull.git</connection>
         <developerConnection>scm:git:git@github.com:zman2013/multiplex-pull.git</developerConnection>
         <url>https://github.com/zman2013/multiplex-pull</url>
-        <tag>multiplex-pull-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <licenses>
