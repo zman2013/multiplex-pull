@@ -12,6 +12,7 @@ import static com.zman.stream.multiplex.pull.enums.ChannelDataType.NormalData;
 
 public class DefaultChannel implements IChannel {
 
+    private boolean localChannel;
 
     private String channelId;
 
@@ -22,26 +23,34 @@ public class DefaultChannel implements IChannel {
     private IMultiplex multiplex;
 
 
-    public DefaultChannel(String channelId, String resourceId, IMultiplex multiplex){
+    public DefaultChannel(boolean localChannel, String channelId, String resourceId, IMultiplex multiplex){
 
+        this.localChannel = localChannel;
         this.channelId = channelId;
         this.resourceId = resourceId;
 
         this.multiplex = multiplex;
 
-        duplex = new DefaultDuplex<>(new DefaultStreamBuffer<>(),
-                this::onData, this::onClose, this::onException);
+        duplex = new DefaultDuplex<>(this::onData, this::onClose);
     }
 
 
-    public void onData(byte[] data){
+    private boolean onData(byte[] data){
         multiplex.pushSource(this, NormalData.ordinal(), data);
+        return false;
     }
-    public void onClose(){
-        multiplex.pushSource(this, ChannelClose.ordinal(), null);
+    private void onClose(Throwable throwable){
+        multiplex.pushSource(this, ChannelClose.ordinal(), new byte[0]);
     }
-    public void onException(Throwable throwable){
-        multiplex.pushSource(this, ChannelClose.ordinal(), null);
+
+    /**
+     * The local channel is created by local multiplex; the remote channel is created by remote multiplex.
+     *
+     * @return true: local channel, false: mirror channel of the remote channel
+     */
+    @Override
+    public boolean isLocalChannel() {
+        return localChannel;
     }
 
     /**
@@ -65,7 +74,7 @@ public class DefaultChannel implements IChannel {
     }
 
     /**
-     * close duplex, and send close event to multiplex
+     * close duplex
      */
     @Override
     public void close() {

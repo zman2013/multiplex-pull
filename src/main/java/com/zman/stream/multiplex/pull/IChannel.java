@@ -9,7 +9,13 @@ import com.zman.pull.stream.impl.DefaultDuplex;
 public interface IChannel {
 
     /**
-     * @return  unique id for this channel
+     * The local channel is created by local multiplex; the remote channel is created by remote multiplex.
+     * @return true: local channel, false: mirror channel of the remote channel
+     */
+    boolean isLocalChannel();
+
+    /**
+     * @return  unique id for this channel, 10 ascii characters
      */
     String id();
 
@@ -19,7 +25,7 @@ public interface IChannel {
      *
      * There is only two channels(local and remote) with the unique resourceId in one multiplex.
      *
-     * @return the unique resource id in all systems
+     * @return the unique resource id in all systems, 10 ascii characters
      */
     String resourceId();
 
@@ -35,6 +41,9 @@ public interface IChannel {
 
 
     IChannel EmptyChannel = new IChannel() {
+        public boolean isLocalChannel() {
+            return true;
+        }
         @Override
         public String id() {
             return null;

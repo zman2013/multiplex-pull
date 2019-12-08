@@ -2,7 +2,6 @@ package com.zman.stream.multiplex.pull.impl;
 
 import com.zman.pull.stream.IDuplex;
 import com.zman.pull.stream.impl.DefaultDuplex;
-import com.zman.pull.stream.impl.DefaultStreamBuffer;
 import com.zman.stream.multiplex.pull.IChannel;
 import com.zman.stream.multiplex.pull.IMultiplex;
 import com.zman.stream.multiplex.pull.domain.ChannelData;
@@ -17,33 +16,33 @@ import static com.zman.stream.multiplex.pull.enums.ChannelDataType.ChannelInit;
 
 /**
  * The multiplex is paired between two nodes, one called local multiplex, the other called remote multiplex.
- *
+ * <p>
  * You can create a local channel from one multiplex, the paired remote multiplex will create a remote channel automatically.
- *
+ * <p>
  * The channel pair will be linked logically.
- *
+ * <p>
  * The multiplex will maintain a local channel list and a remote channel list.
  * The local channel is created by local multiplex, the remote channel is created by remote multiplex.
  * One local channel of local multiplex is paired with one remote channel of the remote multiplex.
- *
  */
-public class DefaultMultiplex implements IMultiplex{
+public class DefaultMultiplex implements IMultiplex {
 
 
-    private int channelIdSeed;
+    private int channelIdSeed = 1000_000_000;
 
     private Map<String, IChannel> localChannelMap = new HashMap<>();
 
-    private Map<String, IChannel> remoteChanenlMap = new HashMap<>();
+    private Map<String, IChannel> remoteChannelMap = new HashMap<>();
 
     private IDuplex<ChannelData> duplex;
 
     private Consumer<IChannel> onAccept;
 
+    private Consumer<Throwable> onClosed;
 
-    public DefaultMultiplex(){
-        duplex = new DefaultDuplex<>(new DefaultStreamBuffer<>(),
-                this::onData, this::onClose, this::onException);
+
+    public DefaultMultiplex() {
+        duplex = new DefaultDuplex<>(this::onData, this::onDuplexClosed);
     }
 
 
@@ -54,11 +53,10 @@ public class DefaultMultiplex implements IMultiplex{
      */
     @Override
     public IChannel createChannel(String resourceId) {
-        IChannel channel = new DefaultChannel(String.valueOf(channelIdSeed++), resourceId, this);
-
-        pushSource(channel, ChannelInit.ordinal(), null);
-
+        IChannel channel = new DefaultChannel(true, String.valueOf(channelIdSeed++), resourceId, this);
         localChannelMap.put(channel.id(), channel);
+
+        pushSource(channel, ChannelInit.ordinal(), new byte[0]);
 
         return channel;
     }
@@ -84,8 +82,8 @@ public class DefaultMultiplex implements IMultiplex{
     @Override
     public boolean pushSource(IChannel channel, int channelDataType, byte[] data) {
 
-        ChannelData channelData = new ChannelData(channel.id(), channel.resourceId(), channelDataType, data);
-        duplex.push(channelData);
+        ChannelData channelData = new ChannelData(channel.isLocalChannel(), channel.id(), channel.resourceId(), channelDataType, data);
+        duplex.source().push(channelData);
 
         return true;
     }
@@ -99,10 +97,11 @@ public class DefaultMultiplex implements IMultiplex{
      * The `send` means read from source with parameter end=true.
      */
     @Override
-    public void destroy() {
-        localChannelMap.values().forEach(channel-> channel.duplex().close());
-        remoteChanenlMap.values().forEach(channel->channel.duplex().close());
+    public void destroy(Throwable throwable) {
+        localChannelMap.values().forEach(channel -> channel.duplex().close());
+        remoteChannelMap.values().forEach(channel -> channel.duplex().close());
     }
+
 
     @Override
     public IDuplex<ChannelData> duplex() {
@@ -112,47 +111,61 @@ public class DefaultMultiplex implements IMultiplex{
 
     /**
      * read data from source successfully
+     *
      * @param channelData data
      */
-    private void onData(ChannelData channelData) {
+    private boolean onData(ChannelData channelData) {
         ChannelDataType channelDataType = ChannelDataType.values()[channelData.getType()];
         String channelId = channelData.getChannelId();
         String resourceId = channelData.getResourceId();
 
-        switch (channelDataType){
+        switch (channelDataType) {
             // init channel event
             case ChannelInit:
-                IChannel channel = new DefaultChannel(channelId, resourceId, this);
-                remoteChanenlMap.put(channelId, channel);
+                IChannel channel = new DefaultChannel(false, channelId, resourceId, this);
+                remoteChannelMap.put(channelId, channel);
                 onAccept.accept(channel);
                 break;
             // close channel event
             case ChannelClose:
-                remoteChanenlMap.getOrDefault(channelId, IChannel.EmptyChannel)
-                        .duplex()
-                        .close();
+                if( channelData.isLocalChannel() ) {
+                    remoteChannelMap.getOrDefault(channelId, IChannel.EmptyChannel).duplex().close();
+                }else{
+                    localChannelMap.getOrDefault(channelId, IChannel.EmptyChannel).duplex().close();
+                }
                 break;
-            // data
+            // data from remote
             case NormalData:
-                remoteChanenlMap.get(channelId).duplex().push(channelData.getPayload());
+                if (channelData.isLocalChannel()) {     // 数据来自对端的本地channel
+                    remoteChannelMap.get(channelId).duplex().push(channelData.getPayload());
+                } else {                                  // 数据来自对端的远程channel的镜像
+                    localChannelMap.get(channelId).duplex().push(channelData.getPayload());
+                }
                 break;
             default:
                 // unreachable, ignore
         }
+        return false;
     }
 
     /**
-     * multiplex closed
+     * When the multiplex is closed, it will invoke this functional method.
+     *
+     * @param callback callback
      */
-    private void onClose() {
-        destroy();
+    @Override
+    public IMultiplex onClosed(Consumer<Throwable> callback) {
+        this.onClosed = callback;
+        return this;
     }
 
     /**
-     * multiplex throw exception
-     * @param throwable throwable
+     * when the underlying duplex closed
      */
-    private void onException(Throwable throwable) {
-        destroy();
+    private void onDuplexClosed(Throwable throwable) {
+        destroy(throwable);
+        if (onClosed != null)
+            onClosed.accept(null);
     }
+
 }

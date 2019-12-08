@@ -60,8 +60,16 @@ public interface IMultiplex {
      *
      * The `send` means read from source with parameter end=true.
      *
+     * @param throwable throwable
      */
-    void destroy();
+    void destroy(Throwable throwable);
+
+    default void destroy(){destroy(null);}
+
+    /**
+     * When the multiplex is closed, it will invoke this functional method.
+     */
+    IMultiplex onClosed(Consumer<Throwable> callback);
 
     /**
      * @return the underlying duplex

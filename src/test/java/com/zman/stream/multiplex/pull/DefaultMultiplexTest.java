@@ -48,9 +48,8 @@ public class DefaultMultiplexTest {
         Holder<Boolean> closed = new Holder<>();
 
         IDuplex<byte[]> duplex = new DefaultDuplex<>(
-                data->{},
-                ()-> closed.value = true,
-                throwable -> {}
+                data-> false,
+                throwable -> closed.value = true
         );
 
         Holder<Boolean> channelLinked = new Holder<>();
@@ -79,9 +78,13 @@ public class DefaultMultiplexTest {
         Holder<Boolean> closed = new Holder<>();
 
         IDuplex<byte[]> duplex = new DefaultDuplex<>(
-                data-> dataHolder.value = new String(data, StandardCharsets.UTF_8),
-                ()-> closed.value = true,
-                throwable -> {}
+                data-> {
+                    dataHolder.value = new String(data, StandardCharsets.UTF_8);
+                    return false;},
+                throwable -> {
+                    closed.value = true;
+                    System.out.println("closed");
+                }
         );
 
         Holder<Boolean> channelLinked = new Holder<>();
@@ -98,7 +101,7 @@ public class DefaultMultiplexTest {
         IChannel channelB = mb.createChannel("food-model");
 
         ISource<byte[]> source = new DefaultSource<>();
-        pull(source, channelB.duplex());
+        pull(source, channelB.duplex().sink());
 
         source.push("hello".getBytes(StandardCharsets.UTF_8));
         channelB.duplex().close();
@@ -116,9 +119,8 @@ public class DefaultMultiplexTest {
         Holder<Boolean> closed = new Holder<>();
 
         IDuplex<byte[]> duplex = new DefaultDuplex<>(
-                data-> dataHolder.value = new String(data, StandardCharsets.UTF_8),
-                ()-> closed.value = true,
-                throwable -> {}
+                data-> {dataHolder.value = new String(data, StandardCharsets.UTF_8);return false;},
+                throwable -> closed.value = true
         );
 
         Holder<Boolean> channelLinked = new Holder<>();
@@ -134,7 +136,7 @@ public class DefaultMultiplexTest {
         IChannel channelB = mb.createChannel("food-model");
 
         ISource<byte[]> source = new DefaultSource<>();
-        pull(source, channelB.duplex());
+        pull(source, channelB.duplex().sink());
 
         mb.destroy();
 
