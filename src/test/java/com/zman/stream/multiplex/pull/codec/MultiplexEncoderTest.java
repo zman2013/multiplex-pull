@@ -42,7 +42,7 @@ public class MultiplexEncoderTest {
 
         when(source.get(false, null, sink)).thenReturn(readResult);
 
-        ReadResult<byte[]> result = encoder.get(false, sink);
+        ReadResult<byte[]> result = encoder.get(false, null, sink);
 
         // verify
         Assert.assertArrayEquals(expectedBytes, result.data);

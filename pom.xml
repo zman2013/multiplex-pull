@@ -15,7 +15,7 @@
         <connection>scm:git:git@github.com:zman2013/multiplex-pull.git</connection>
         <developerConnection>scm:git:git@github.com:zman2013/multiplex-pull.git</developerConnection>
         <url>https://github.com/zman2013/multiplex-pull</url>
-        <tag>HEAD</tag>
+        <tag>multiplex-pull-2.1.3</tag>
     </scm>
 
     <licenses>

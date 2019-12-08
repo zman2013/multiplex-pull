@@ -25,7 +25,7 @@ public class MultiplexDecoderTest {
     @Mock
     private ISource<byte[]> source;
     @Mock
-    private ISink<byte[]> sink;
+    private ISink sink;
 
     @Test
     public void encodeNormalData() throws NoSuchFieldException, IllegalAccessException {
@@ -95,7 +95,7 @@ public class MultiplexDecoderTest {
 
         when(source.get(false, null, sink)).thenReturn(readResult);
 
-        ReadResult<ChannelData> result = decoder.get(false, sink);
+        ReadResult<ChannelData> result = decoder.get(false, null, sink);
 
         // verify
         ChannelData resultData = result.data;
