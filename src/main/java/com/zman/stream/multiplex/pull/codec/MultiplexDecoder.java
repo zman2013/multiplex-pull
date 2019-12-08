@@ -14,8 +14,8 @@ public class MultiplexDecoder extends DefaultThrough<byte[], ChannelData> {
 
 
     @Override
-    public ReadResult get(boolean end, ISink sink) {
-        ReadResult readResult = super.get(end, sink);
+    public ReadResult get(boolean end, Throwable throwable, ISink sink) {
+        ReadResult readResult = super.get(end, throwable, sink);
 
         if(ReadResultEnum.Available.equals(readResult.status)){
             byte[] buffer = (byte[]) readResult.data;

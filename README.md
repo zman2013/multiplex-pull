@@ -6,7 +6,7 @@ combine multiple pull-streams into one share underlying stream, such as one sock
  <dependency>
      <groupId>com.zmannotes</groupId>
      <artifactId>multiplex-pull</artifactId>
-     <version>2.1.2</version>
+     <version>2.1.3</version>
 </dependency>
  ```
  

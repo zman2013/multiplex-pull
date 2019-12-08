@@ -14,8 +14,8 @@ public class MultiplexEncoder extends DefaultThrough<ChannelData, byte[]> {
     private ByteBuffer byteBuffer = ByteBuffer.allocate(64*1024);
 
     @Override
-    public ReadResult get(boolean end, ISink sink) {
-        ReadResult readResult = super.get(end, sink);
+    public ReadResult get(boolean end, Throwable throwable, ISink sink) {
+        ReadResult readResult = super.get(end, throwable, sink);
 
         if(ReadResultEnum.Available.equals(readResult.status)){
             ChannelData channelData = (ChannelData) readResult.data;
